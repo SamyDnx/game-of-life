@@ -1,16 +1,17 @@
-import time
-
 import pygame
 import numpy as np
 
 pygame.init()
 
+# Window settings
 WIDTH = 1920
 HEIGHT = 1080
 SIZE = 10
 GRID_WIDTH = WIDTH // SIZE
 GRID_HEIGHT = HEIGHT // SIZE
+FPS = 60
 
+# Define all colors
 black = pygame.Color(0, 0, 0)
 white = pygame.Color(255, 255, 255)
 red = pygame.Color(255, 0, 0)
@@ -19,16 +20,20 @@ blue = pygame.Color(0, 0, 255)
 pink = pygame.Color(255, 192, 203)
 yellow = pygame.Color(255, 255, 0)
 cyan = pygame.Color(43, 255, 255)
-marron = pygame.Color(128, 0, 0)
+maroon = pygame.Color(128, 0, 0)
 
+# Default Color
 color = white
 
+# Create grid
 grid = np.zeros((GRID_HEIGHT, GRID_WIDTH), dtype=int)
 
+# Create window
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Game of Life")
 clock = pygame.time.Clock()
 
+# Function to draw the grid
 def draw_grid(window, grid, color):
     for y in range(GRID_HEIGHT):
         for x in range(GRID_WIDTH):
@@ -38,6 +43,7 @@ def draw_grid(window, grid, color):
             else:
                 pygame.draw.rect(window, black, rect)
 
+# Function to update the grid based on Game of Life rules
 def update_grid(grid):
     new_grid = np.copy(grid)
     for y in range(1, GRID_HEIGHT - 1):  # Avoid the top and bottom edges
@@ -51,27 +57,31 @@ def update_grid(grid):
                 new_grid[y, x] = 1
     return new_grid
 
+# Generate a random grid
 def random_grid(grid):
     return np.random.randint(2, size=grid.shape)
 
-def toogle_cell(grid, x, y):
+# Change cell state
+def toggle_cell(grid, x, y):
     if grid[y, x] == 0:
         grid[y, x] = 1
     else:
         grid[y, x] = 0
 
+# Handle left click
 def handle_input(grid):
     mouse_pos = pygame.mouse.get_pos()
     x, y = mouse_pos[0] // SIZE, mouse_pos[1] // SIZE
     if pygame.mouse.get_pressed()[0]: # -> left click toggled ?
-        toogle_cell(grid, x, y)
+        toggle_cell(grid, x, y)
 
-
+# Game loop
 run = True
 pause = True
-
 while run:
+    # Event listener
     for event in pygame.event.get():
+        # Quit the game
         if event.type == pygame.QUIT:
             run = False
             pygame.quit()
@@ -81,13 +91,15 @@ while run:
                 run = False
                 pygame.quit()
                 quit()
+            # Pause the game
             elif event.key == pygame.K_SPACE:
                 if pause:
                     pause = False
                 else:
                     pause = True
             elif event.key == pygame.K_r:
-                grid = random_grid(grid)
+                grid = random_grid(grid) # Call random_grid when "r" key is pressed
+            # Handle color customization on alive cells
             elif event.key == pygame.K_w:
                 color = white
             elif event.key == pygame.K_1:
@@ -103,17 +115,20 @@ while run:
             elif event.key == pygame.K_6:
                 color = cyan
             elif event.key == pygame.K_7:
-                color = marron
+                color = maroon
 
+    # Manage what to do if paused/not paused
     if pause:
         handle_input(grid)
     if not pause:
         grid = update_grid(grid)
 
+    # Update window
     window.fill(black)
     draw_grid(window, grid, color)
     pygame.display.flip()
 
-    clock.tick()
+    # Manage FPS
+    clock.tick(FPS)
 
 pygame.quit()
